@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { FcCalendar } from "react-icons/fc";
 import { Card, CardContent, CardFooter } from "../ui/card";
+import { Separator } from "../ui/separator";
 
 export default function DataView() {
   const [data, setData] = useState<any>([]);
@@ -25,7 +26,6 @@ export default function DataView() {
   useEffect(() => {
     async function getSpends() {
       const { data: spends } = await supabase.from("spends").select();
-      console.log(spends);
       setData(spends);
     }
 
@@ -62,7 +62,10 @@ export default function DataView() {
     setTotalMonthSpent(monthSpent);
   }, [date]);
 
-  console.log(date?.toLocaleDateString()[0]);
+  const deleteItem = async (id: number, index: number) => {
+    await supabase.from("spends").delete().eq("id", id);
+    setDateBasedData(dateBasedData.filter((_: any, i: number) => i !== index));
+  };
 
   return (
     <>
@@ -100,15 +103,28 @@ export default function DataView() {
           </div>
         </CardContent>
         <CardFooter>
-          <div className="flex  flex-wrap justify-around">
-            {dateBasedData.map((item: any) => (
-              <>
-                <div className="m-1 border border-gray-300 rounded-lg shadow p-2 w-[120px]">
-                  <h1 className="font-bold">{item.name}</h1>
-                  <div>$ {item.price}</div>
-                  {item.desc && <p className="text-gray-500">{item.desc}</p>}
+          <div className="flex flex-col">
+            {dateBasedData.map((item: any, index: number) => (
+              <div key={index}>
+                <div className="m-1 border border-gray-300 rounded-lg shadow p-2 w-[300px]">
+                  <div className="flex justify-between items-center">
+                    <div className="flex">
+                      <div className="font-bold">{item.name}</div>
+                      <div className="ml-4 font-normal">$ {item.price}</div>
+                    </div>
+                    <Button onClick={() => deleteItem(item.id, index)}>
+                      x
+                    </Button>
+                  </div>
+
+                  {item.desc && (
+                    <>
+                      <Separator className="my-2" />
+                      <p className="text-gray-500">{item.desc}</p>
+                    </>
+                  )}
                 </div>
-              </>
+              </div>
             ))}
           </div>
         </CardFooter>
